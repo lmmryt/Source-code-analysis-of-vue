@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    // 这个函数是在vue编译模板的时候就生成了
+    // 可以提升性能
+     function creatGetValueByPath(path){
+      let paths = path.split('.');
+      
+      return function getValueByPath(obj){
+        let res = obj;
+        let prop;
+        while(prop = paths.shift()){
+          res = res [prop]
+        }
+        return res;
+      }
+    }
+    let getValueByPath = creatGetValueByPath('a.b.c.d.e')
+    var o = {
+      a:{
+        b:{
+          c:{
+            d:{
+              e:'拿到了'
+            }
+          }
+        }
+      }
+    }
+    let res = getValueByPath(o)
+    console.log(res);
+    
+  </script>
+</body>
+</html>

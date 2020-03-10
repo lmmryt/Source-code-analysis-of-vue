@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!-- 1.写模板 -->
+  <div id="root">
+    <div>
+        <p>{{name}}-{{message}}</p>
+    </div>
+    <p>{{name}}</p>
+    <p>{{message}}</p>
+  </div>
+
+  <script>
+     let rbrackets = /\{\{(.+?)\}\}/g;
+    function compiler(template,data){
+      let childNodes = template.childNodes;//取出子元素
+      for (let i = 0; i < childNodes.length; i++) {
+        let type = childNodes[i].nodeType//1元素 3 文本节点
+        if(type === 3){
+          // 文本节点，可以判断里面是否有{{}}插值
+          let txt = childNodes[i].nodeValue;//该属性只有文本节点才有意义
+          // 有没有花括号
+
+          txt = txt.replace(rbrackets,function(_,g){//replece 使用正则匹配一次，函数就会被调用一次 函数第0个参数，表示匹配带的内容，函数的第n个参数，表示正则中的第n组
+            // console.log(_);//匹配的内容带花括号
+            // console.log(g);//匹配的内容不带花括号
+            let key = g.trim();//去除左右两边空格
+            let value = data[key];
+
+            // 将{{xxx}} 替换 
+            return value;
+          })
+
+          // 注意：txt和dom元素是没有关系的
+          childNodes[i].nodeValue = txt
+        }
+        else if(type === 1){
+          // 元素，考虑有没有有子元素，是否需要将其子元素进行判断是否要插值
+          compiler(childNodes[i],data)
+        }
+      } 
+    }
+    
+
+    function JGVue( options ){
+      // 习惯 ：内部的数据使用下划线开头 _data，只读数据使用$开头
+      this._data = options.data
+      this._el = options.el;
+     
+      // 准备工作（准备模板）
+      this.$el = this._templateDOM = document.querySelector(this._el);
+      this._parent = this._templateDOM.parentNode
+      // 渲染工作
+      this.render()
+    }
+    // 将模板结合数据，得到html加到页面中
+    JGVue.prototype.render=function(){
+      this.compiler()
+    }
+    // 编译 将模板与数据结合得到真正的dom元素
+    JGVue.prototype.compiler=function(){
+      let realHTMLDOM = this._templateDOM.cloneNode(true);//用模板拷贝得到一个准DOM
+      compiler(realHTMLDOM,this._data);
+      this.update(realHTMLDOM)
+    }
+    // 更新 将dom元素放到页面中
+    JGVue.prototype.update=function(real){
+      this._parent.replaceChild(real,this.$el)
+    }
+    // 想想这么用
+    let app = new JGVue({
+      el:"#root",
+      data:{
+        name:"lll",
+        message:"info"
+      }
+    })
+
+
+    
+  </script>
+</body>
+</html>
